@@ -21,63 +21,65 @@ import org.apache.hadoop.util.GenericOptionsParser
 import org.apache.hadoop.util.Tool
 import org.apache.hadoop.util.ToolRunner
 
+import org.dianahep.scaroot.hadoop.RootInputFormat
+
 package object roottest {
   val configuration = new Configuration
 }
 
 package roottest {
-  // case class TwoMuon(mumu_mass: Float, px: Float, py: Float, pz: Float)
-  // class TwoMuonInputFormat extends RootInputFormat[TwoMuon]("TrackResonanceNtuple")
+  case class TwoMuon(mumu_mass: Float, px: Float, py: Float, pz: Float)
+  class TwoMuonInputFormat extends RootInputFormat[TwoMuon]("TrackResonanceNtuple/twoMuon")
 
-  // class TestMapper extends Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon] {
-  //   type Context = Mapper[LongWritable, TwoMuon, TwoMuon, IntWritable]#Context
+  class TestMapper extends Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon] {
+    type Context = Mapper[LongWritable, TwoMuon, TwoMuon, IntWritable]#Context
 
-  //   override def setup(context: Context) { }
+    override def setup(context: Context) { }
 
-  //   override def map(key: LongWritable, value: TwoMuon, context: Context) {
-  //     context.write(new IntWritable(value.mumu_mass.toInt), value)
-  //   }
-  // }
+    override def map(key: LongWritable, value: TwoMuon, context: Context) {
+      context.write(new IntWritable(value.mumu_mass.toInt), value)
+    }
+  }
 
-  // class TestReducer extends Reducer[IntWritable, TwoMuon, Text, Text] {
-  //   type Context = Reducer[IntWritable, TwoMuon, Text, Text]#Context
+  class TestReducer extends Reducer[IntWritable, TwoMuon, Text, Text] {
+    type Context = Reducer[IntWritable, TwoMuon, Text, Text]#Context
 
-  //   override def setup(context: Context) { }
+    override def setup(context: Context) { }
 
-  //   override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuon], context: Context) {
-  //     context.write(new Text(key.toString), new Text(values.map(x => 1).sum.toString))
-  //   }
-  // }
+    override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuon], context: Context) {
+      context.write(new Text(key.toString), new Text(values.map(x => 1).sum.toString))
+    }
+  }
 
-  // class RootJob extends Configured with Tool {
-  //   override def run(args: Array[String]): Int = {
-  //     configuration.set("mapred.reduce.tasks", "1")
+  class RootJob extends Configured with Tool {
+    override def run(args: Array[String]): Int = {
+      configuration.set("mapred.reduce.tasks", "1")
 
-  //     val inputPaths = args(0)
-  //     val outputPaths = args(1)
+      val inputPaths = args(0)
+      val outputPaths = args(1)
 
-  //     val job = new Job(configuration, "roottest")
-  //     FileInputFormat.setInputPaths(job, new Path(inputPaths))
-  //     FileOutputFormat.setOutputPath(job, new Path(outputPaths))
+      val job = new Job(configuration, "roottest")
+      FileInputFormat.setInputPaths(job, new Path(inputPaths))
+      FileOutputFormat.setOutputPath(job, new Path(outputPaths))
 
-  //     job.setMapperClass(classOf[TestMapper])
-  //     job.setReducerClass(classOf[TestReducer])
+      job.setMapperClass(classOf[TestMapper])
+      job.setReducerClass(classOf[TestReducer])
 
-  //     job.setInputFormatClass(classOf[TwoMuonInputFormat])
-  //     job.setMapOutputKeyClass(classOf[IntWritable]);
-  //     job.setMapOutputValueClass(classOf[TwoMuon]);
-  //     job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
+      job.setInputFormatClass(classOf[TwoMuonInputFormat])
+      job.setMapOutputKeyClass(classOf[IntWritable]);
+      job.setMapOutputValueClass(classOf[TwoMuon]);
+      job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
 
-  //     job.setJarByClass(classOf[RootJob])
-  //     job.waitForCompletion(true)
-  //     0
-  //   }
-  // }
+      job.setJarByClass(classOf[RootJob])
+      job.waitForCompletion(true)
+      0
+    }
+  }
 
-  // object Main {
-  //   def main(args: Array[String]) {
-  //     val otherArgs: Array[String] = new GenericOptionsParser(configuration, args).getRemainingArgs
-  //     ToolRunner.run(new RootJob, otherArgs)
-  //   }
-  // }
+  object Main {
+    def main(args: Array[String]) {
+      val otherArgs: Array[String] = new GenericOptionsParser(configuration, args).getRemainingArgs
+      ToolRunner.run(new RootJob, otherArgs)
+    }
+  }
 }
