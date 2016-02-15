@@ -106,7 +106,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>org.dianahep.hadooptest.wordcount</mainClass>
+              <mainClass>org.dianahep.hadooptest.wordcount.WordCount</mainClass>
               <addClasspath>true</addClasspath>
               <classpathPrefix>./lib</classpathPrefix>
             </manifest>
