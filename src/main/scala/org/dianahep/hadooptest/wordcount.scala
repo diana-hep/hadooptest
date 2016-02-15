@@ -66,7 +66,7 @@ package wordcount {
       job.setMapperClass(classOf[TestMapper])
       job.setReducerClass(classOf[TestReducer])
 
-      job.setInputFormatClass(classOf[TextInputFormat])
+      job.setInputFormatClass(classOf[RootInputFormat])
       job.setMapOutputKeyClass(classOf[Text]);
       job.setMapOutputValueClass(classOf[IntWritable]);
       job.setOutputFormatClass(classOf[TextOutputFormat[_, _]])
