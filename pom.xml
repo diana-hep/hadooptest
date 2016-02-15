@@ -32,6 +32,18 @@
       <version>${scala.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.diana-hep</groupId>
+      <artifactId>scaroot</artifactId>
+      <version>TRUNK</version>
+    </dependency>
+
     <!-- <dependency> -->
     <!--   <groupId>org.apache.hadoop</groupId> -->
     <!--   <artifactId>hadoop-core</artifactId> -->
@@ -106,7 +118,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>org.dianahep.hadooptest.wordcount.WordCount</mainClass>
+              <mainClass>org.dianahep.hadooptest.roottest.Main</mainClass>
               <addClasspath>true</addClasspath>
               <classpathPrefix>./lib</classpathPrefix>
             </manifest>
@@ -159,7 +171,7 @@
           </descriptors>
           <archive>
             <manifest>
-              <mainClass>org.dianahep.hadooptest.wordcount.WordCount</mainClass>
+              <mainClass>org.dianahep.hadooptest.roottest.Main</mainClass>
             </manifest>
           </archive>
         </configuration>

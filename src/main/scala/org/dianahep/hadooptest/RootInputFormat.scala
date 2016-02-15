@@ -3,48 +3,70 @@ package org.dianahep
 import scala.collection.JavaConversions._
 
 import org.apache.hadoop.fs.FileStatus
+import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.compress.CompressionCodecFactory
 import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapreduce.JobStatus
+import org.apache.hadoop.mapreduce.InputSplit
 import org.apache.hadoop.mapreduce.JobContext
+import org.apache.hadoop.mapreduce.JobStatus
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
+import org.apache.hadoop.mapreduce.lib.input.FileSplit
 import org.apache.hadoop.mapreduce.RecordReader
 import org.apache.hadoop.mapreduce.TaskAttemptContext
-import org.apache.hadoop.mapreduce.InputSplit
+
+import org.dianahep.scaroot.freehep.FreeHepRootTTreeReader
+// import org.dianahep.scaroot.native.NativeRootTTreeReader
 
 package hadooptest {
-  class RootInputFormat extends FileInputFormat[LongWritable, Text] {
-    override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[LongWritable, Text] =
-      new RootRecordReader
+  // abstract class RootInputFormat[CASE](ttreeLocation: String) extends FileInputFormat[LongWritable, CASE] {
+  //   override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[LongWritable, CASE] =
+  //     new RootRecordReader[CASE](ttreeLocation)
 
-    override def isSplitable(context: JobContext, file: Path): Boolean = true
-  }
+  //   override def isSplitable(context: JobContext, file: Path): Boolean = false
 
-  class RootRecordReader extends RecordReader[LongWritable, Text] {
-    override def initialize(split: InputSplit, context: TaskAttemptContext) {
-      println(s"SPLITS (${split.getLength})")
-      split.getLocations foreach {x =>
-        println("    " + x)
-      }
+  //   override def getSplits(job: JobContext): java.util.List[InputSplit] =
+  //     super.getSplits(job)  // does the right thing; this is here as a reminder that it's overridable
+  // }
 
-      println(s"context.getWorkingDirectory ${context.getWorkingDirectory}")
+  // class RootRecordReader[CASE](ttreeLocation: String) extends RecordReader[LongWritable, CASE] {
+  //   private var reader: FreeHepRootTTreeReader[CASE] = null
+  //   private var row = -1L
+  //   private var key: LongWritable = null
+  //   private var value: CASE = null.asInstanceOf[CASE]
 
-    }
-    var counter = 0L
-    override def nextKeyValue(): Boolean = {
-      if (counter == 100L)
-        false
-      else {
-        counter += 1L
-        true
-      }
-    }
-    override def getCurrentKey() = new LongWritable(counter)
-    override def getCurrentValue() = new Text("hello")
-    override def getProgress() = 0.0F
-    override def close() { }
-  }
+  //   override def initialize(split: InputSplit, context: TaskAttemptContext) = split match {
+  //     case fileSplit: FileSplit =>
+  //       val job = context.getConfiguration
+  //       val fileSystem = FileSystem.get(job)
+  //       val localFileSystem = FileSystem.getLocal(job)
+
+  //       // Copy file from HDFS to local file system (verified temporary for successful and unsuccessful jobs).
+  //       // This feels wrong, but I don't see a way around it.
+  //       val name = fileSplit.getPath.getName
+  //       fileSystem.copyToLocalFile(false, fileSplit.getPath, localFileSystem.getWorkingDirectory)
+
+  //       val file = localFileSystem.pathToFile(new Path(localFileSystem.getWorkingDirectory, name))
+  //       reader = FreeHepRootTTreeReader[CASE](file.getAbsolutePath, ttreeLocation)
+  //   }
+
+  //   override def nextKeyValue(): Boolean = {
+  //     row += 1L
+  //     if (row < reader.size) {
+  //       key = new LongWritable(row)
+  //       value = reader.get(row)
+  //       true
+  //     }
+  //     else
+  //       false
+  //   }
+  //   override def getCurrentKey() = key
+  //   override def getCurrentValue() = value
+  //   override def getProgress() = row.toFloat / reader.size.toFloat
+  //   override def close() {
+  //     reader.release()
+  //   }
+  // }
 
 }
