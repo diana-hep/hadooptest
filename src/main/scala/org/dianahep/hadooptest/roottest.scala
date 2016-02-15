@@ -28,7 +28,10 @@ package object roottest {
 }
 
 package roottest {
-  case class TwoMuon(mumu_mass: Float, px: Float, py: Float, pz: Float)
+  case class TwoMuon(mumu_mass: Float, px: Float, py: Float, pz: Float) {
+    def momentum = Math.sqrt(px*px + py*py + pz*pz)
+    def energy = Math.sqrt(mumu_mass*mumu_mass + px*px + py*py + pz*pz)
+  }
   class TwoMuonInputFormat extends RootInputFormat[TwoMuon]("TrackResonanceNtuple/twoMuon")
 
   class TestMapper extends Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon] {
