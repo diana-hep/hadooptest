@@ -35,7 +35,9 @@ package roottest {
     def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
   }
 
-  class TwoMuonInputFormat extends RootInputFormat[TwoMuon]("TrackResonanceNtuple/twoMuon")
+  class TwoMuonWritable extends HadoopWritable[TwoMuon]
+
+  class TwoMuonInputFormat extends RootInputFormat[TwoMuon, TwoMuonWritable]("TrackResonanceNtuple/twoMuon")
 
   class TestMapper extends Mapper[LongWritable, HadoopWritable[TwoMuon], IntWritable, HadoopWritable[TwoMuon]] {
     type Context = Mapper[LongWritable, HadoopWritable[TwoMuon], IntWritable, HadoopWritable[TwoMuon]]#Context
@@ -79,7 +81,7 @@ package roottest {
 
       job.setInputFormatClass(classOf[TwoMuonInputFormat])
       job.setMapOutputKeyClass(classOf[IntWritable]);
-      job.setMapOutputValueClass(classOf[HadoopWritable[TwoMuon]]);
+      job.setMapOutputValueClass(classOf[TwoMuonWritable]);
       job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
 
       job.setJarByClass(classOf[RootJob])
