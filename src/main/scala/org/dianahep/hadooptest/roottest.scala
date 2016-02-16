@@ -23,6 +23,7 @@ import org.apache.hadoop.util.Tool
 import org.apache.hadoop.util.ToolRunner
 
 import org.dianahep.scaroot.hadoop.RootInputFormat
+import org.dianahep.scaroot.hadoop.KeyWritable
 import org.dianahep.scaroot.hadoop.ValueWritable
 
 package object roottest {
@@ -34,18 +35,21 @@ package roottest {
     def momentum = Math.sqrt(px*px + py*py + pz*pz)
     def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
   }
-
   class TwoMuonWritable extends ValueWritable[TwoMuon]
-
   class TwoMuonInputFormat extends RootInputFormat[TwoMuon, TwoMuonWritable]("TrackResonanceNtuple/twoMuon")
 
-  class TestMapper extends Mapper[LongWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
-    type Context = Mapper[LongWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
+  class TestMapper extends Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
+    type Context = Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
 
     override def setup(context: Context) { }
 
-    override def map(key: LongWritable, value: TwoMuonWritable, context: Context) {
-      context.write(new IntWritable(value.get.mass_mumu.toInt), value)
+    override def map(key: KeyWritable, value: TwoMuonWritable, context: Context) {
+      val KeyWritable(ttreeEntry) = key
+      val ValueWritable(TwoMuon(mass, _, _, _)) = value
+
+      println(ttreeEntry, mass)
+
+      context.write(new IntWritable(mass.toInt), value)
     }
   }
 
@@ -57,7 +61,8 @@ package roottest {
     override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
       var count = 0
       values foreach {v =>
-        println(v.get)
+        val ValueWritable(TwoMuon(mass, _, _, _)) = v
+        println(mass)
         count += 1
       }
 
@@ -97,26 +102,3 @@ package roottest {
     }
   }
 }
-
-  // class TwoMuon(var mass_mumu: Float, var px: Float, var py: Float, var pz: Float) extends Writable {
-  //   def momentum = Math.sqrt(px*px + py*py + pz*pz)
-  //   def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
-
-  //   def this() {
-  //     this(0.0F, 0.0F, 0.0F, 0.0F)
-  //   }
-
-  //   def readFields(in: java.io.DataInput) {
-  //     mass_mumu = in.readFloat()
-  //     px = in.readFloat()
-  //     py = in.readFloat()
-  //     pz = in.readFloat()
-  //   }
-
-  //   def write(out: java.io.DataOutput) {
-  //     out.writeFloat(mass_mumu)
-  //     out.writeFloat(px)
-  //     out.writeFloat(py)
-  //     out.writeFloat(pz)
-  //   }
-  // }
