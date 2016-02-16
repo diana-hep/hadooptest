@@ -23,7 +23,7 @@ import org.apache.hadoop.util.Tool
 import org.apache.hadoop.util.ToolRunner
 
 import org.dianahep.scaroot.hadoop.RootInputFormat
-import org.dianahep.scaroot.hadoop.HadoopWritable
+import org.dianahep.scaroot.hadoop.ValueWritable
 
 package object roottest {
   val configuration = new Configuration
@@ -35,26 +35,26 @@ package roottest {
     def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
   }
 
-  class TwoMuonWritable extends HadoopWritable[TwoMuon]
+  class TwoMuonWritable extends ValueWritable[TwoMuon]
 
   class TwoMuonInputFormat extends RootInputFormat[TwoMuon, TwoMuonWritable]("TrackResonanceNtuple/twoMuon")
 
-  class TestMapper extends Mapper[LongWritable, HadoopWritable[TwoMuon], IntWritable, HadoopWritable[TwoMuon]] {
-    type Context = Mapper[LongWritable, HadoopWritable[TwoMuon], IntWritable, HadoopWritable[TwoMuon]]#Context
+  class TestMapper extends Mapper[LongWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
+    type Context = Mapper[LongWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
 
     override def setup(context: Context) { }
 
-    override def map(key: LongWritable, value: HadoopWritable[TwoMuon], context: Context) {
+    override def map(key: LongWritable, value: TwoMuonWritable, context: Context) {
       context.write(new IntWritable(value.get.mass_mumu.toInt), value)
     }
   }
 
-  class TestReducer extends Reducer[IntWritable, HadoopWritable[TwoMuon], Text, Text] {
-    type Context = Reducer[IntWritable, HadoopWritable[TwoMuon], Text, Text]#Context
+  class TestReducer extends Reducer[IntWritable, TwoMuonWritable, Text, Text] {
+    type Context = Reducer[IntWritable, TwoMuonWritable, Text, Text]#Context
 
     override def setup(context: Context) { }
 
-    override def reduce(key: IntWritable, values: java.lang.Iterable[HadoopWritable[TwoMuon]], context: Context) {
+    override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
       var count = 0
       values foreach {v =>
         println(v.get)
