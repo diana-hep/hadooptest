@@ -10,6 +10,7 @@ import org.apache.hadoop.io.IntWritable
 import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.io.NullWritable
 import org.apache.hadoop.io.Text
+import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
@@ -28,19 +29,38 @@ package object roottest {
 }
 
 package roottest {
-  case class TwoMuon(mumu_mass: Float, px: Float, py: Float, pz: Float) {
+  case class TwoMuon(var mass_mumu: Float, var px: Float, var py: Float, var pz: Float) extends Writable {
     def momentum = Math.sqrt(px*px + py*py + pz*pz)
-    def energy = Math.sqrt(mumu_mass*mumu_mass + px*px + py*py + pz*pz)
+    def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
+
+    def this() {
+      this(0.0F, 0.0F, 0.0F, 0.0F)
+    }
+
+    def readFields(in: java.io.DataInput) {
+      mass_mumu = in.readFloat()
+      px = in.readFloat()
+      py = in.readFloat()
+      pz = in.readFloat()
+    }
+
+    def write(out: java.io.DataOutput) {
+      out.writeFloat(mass_mumu)
+      out.writeFloat(px)
+      out.writeFloat(py)
+      out.writeFloat(pz)
+    }
   }
+
   class TwoMuonInputFormat extends RootInputFormat[TwoMuon]("TrackResonanceNtuple/twoMuon")
 
   class TestMapper extends Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon] {
-    type Context = Mapper[LongWritable, TwoMuon, TwoMuon, IntWritable]#Context
+    type Context = Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon]#Context
 
     override def setup(context: Context) { }
 
     override def map(key: LongWritable, value: TwoMuon, context: Context) {
-      context.write(new IntWritable(value.mumu_mass.toInt), value)
+      context.write(new IntWritable(value.mass_mumu.toInt), value)
     }
   }
 
@@ -50,7 +70,13 @@ package roottest {
     override def setup(context: Context) { }
 
     override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuon], context: Context) {
-      context.write(new Text(key.toString), new Text(values.map(x => 1).sum.toString))
+      var count = 0
+      values foreach {v =>
+        println(v)
+        count += 1
+      }
+
+      context.write(new Text(key.toString), new Text(count.toString))   // values.size
     }
   }
 
