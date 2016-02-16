@@ -23,56 +23,39 @@ import org.apache.hadoop.util.Tool
 import org.apache.hadoop.util.ToolRunner
 
 import org.dianahep.scaroot.hadoop.RootInputFormat
+import org.dianahep.scaroot.hadoop.HadoopWritable
 
 package object roottest {
   val configuration = new Configuration
 }
 
 package roottest {
-  case class TwoMuon(var mass_mumu: Float, var px: Float, var py: Float, var pz: Float) extends Writable {
+  case class TwoMuon(mass_mumu: Float, px: Float, py: Float, pz: Float) {
     def momentum = Math.sqrt(px*px + py*py + pz*pz)
     def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
-
-    def this() {
-      this(0.0F, 0.0F, 0.0F, 0.0F)
-    }
-
-    def readFields(in: java.io.DataInput) {
-      mass_mumu = in.readFloat()
-      px = in.readFloat()
-      py = in.readFloat()
-      pz = in.readFloat()
-    }
-
-    def write(out: java.io.DataOutput) {
-      out.writeFloat(mass_mumu)
-      out.writeFloat(px)
-      out.writeFloat(py)
-      out.writeFloat(pz)
-    }
   }
 
   class TwoMuonInputFormat extends RootInputFormat[TwoMuon]("TrackResonanceNtuple/twoMuon")
 
-  class TestMapper extends Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon] {
-    type Context = Mapper[LongWritable, TwoMuon, IntWritable, TwoMuon]#Context
+  class TestMapper extends Mapper[LongWritable, HadoopWritable[TwoMuon], IntWritable, HadoopWritable[TwoMuon]] {
+    type Context = Mapper[LongWritable, HadoopWritable[TwoMuon], IntWritable, HadoopWritable[TwoMuon]]#Context
 
     override def setup(context: Context) { }
 
-    override def map(key: LongWritable, value: TwoMuon, context: Context) {
-      context.write(new IntWritable(value.mass_mumu.toInt), value)
+    override def map(key: LongWritable, value: HadoopWritable[TwoMuon], context: Context) {
+      context.write(new IntWritable(value.get.mass_mumu.toInt), value)
     }
   }
 
-  class TestReducer extends Reducer[IntWritable, TwoMuon, Text, Text] {
-    type Context = Reducer[IntWritable, TwoMuon, Text, Text]#Context
+  class TestReducer extends Reducer[IntWritable, HadoopWritable[TwoMuon], Text, Text] {
+    type Context = Reducer[IntWritable, HadoopWritable[TwoMuon], Text, Text]#Context
 
     override def setup(context: Context) { }
 
-    override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuon], context: Context) {
+    override def reduce(key: IntWritable, values: java.lang.Iterable[HadoopWritable[TwoMuon]], context: Context) {
       var count = 0
       values foreach {v =>
-        println(v)
+        println(v.get)
         count += 1
       }
 
@@ -96,7 +79,7 @@ package roottest {
 
       job.setInputFormatClass(classOf[TwoMuonInputFormat])
       job.setMapOutputKeyClass(classOf[IntWritable]);
-      job.setMapOutputValueClass(classOf[TwoMuon]);
+      job.setMapOutputValueClass(classOf[HadoopWritable[TwoMuon]]);
       job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
 
       job.setJarByClass(classOf[RootJob])
@@ -112,3 +95,26 @@ package roottest {
     }
   }
 }
+
+  // class TwoMuon(var mass_mumu: Float, var px: Float, var py: Float, var pz: Float) extends Writable {
+  //   def momentum = Math.sqrt(px*px + py*py + pz*pz)
+  //   def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
+
+  //   def this() {
+  //     this(0.0F, 0.0F, 0.0F, 0.0F)
+  //   }
+
+  //   def readFields(in: java.io.DataInput) {
+  //     mass_mumu = in.readFloat()
+  //     px = in.readFloat()
+  //     py = in.readFloat()
+  //     pz = in.readFloat()
+  //   }
+
+  //   def write(out: java.io.DataOutput) {
+  //     out.writeFloat(mass_mumu)
+  //     out.writeFloat(px)
+  //     out.writeFloat(py)
+  //     out.writeFloat(pz)
+  //   }
+  // }
