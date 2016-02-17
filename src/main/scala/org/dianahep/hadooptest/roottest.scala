@@ -47,8 +47,6 @@ package roottest {
       val KeyWritable(ttreeEntry) = key
       val ValueWritable(TwoMuon(mass, _, _, _)) = value
 
-      println(ttreeEntry, mass)
-
       context.write(new IntWritable(mass.toInt), value)
     }
   }
@@ -59,14 +57,7 @@ package roottest {
     override def setup(context: Context) { }
 
     override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
-      var count = 0
-      values foreach {v =>
-        val ValueWritable(TwoMuon(mass, _, _, _)) = v
-        println(mass)
-        count += 1
-      }
-
-      context.write(new Text(key.toString), new Text(count.toString))   // values.size
+      context.write(new Text(key.toString), new Text(values.size.toString))
     }
   }
 
