@@ -13,6 +13,7 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
+import org.apache.hadoop.mapreduce.lib.input.FileSplit
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat
@@ -41,9 +42,20 @@ package roottest {
   class TestMapper extends Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
     type Context = Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
 
-    override def setup(context: Context) { }
+    var partitionShown = false
+    var context = null.asInstanceOf[Context]
+
+    override def setup(context: Context) {
+      this.context = context
+    }
 
     override def map(key: KeyWritable, value: TwoMuonWritable, context: Context) {
+      if (!partitionShown) {
+        println(s"path ${context.getInputSplit.asInstanceOf[FileSplit].getPath}")
+        println(s"name ${context.getInputSplit.asInstanceOf[FileSplit].getPath.getName}")
+        partitionShown = true
+      }
+
       val KeyWritable(ttreeEntry) = key
       val ValueWritable(TwoMuon(mass, _, _, _)) = value
 
