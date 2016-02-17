@@ -39,69 +39,69 @@ package roottest {
   class TwoMuonWritable extends ValueWritable[TwoMuon]
   class TwoMuonInputFormat extends RootInputFormat[TwoMuon, TwoMuonWritable]("TrackResonanceNtuple/twoMuon")
 
-  class TestMapper extends Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
-    type Context = Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
+  // class TestMapper extends Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
+  //   type Context = Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
 
-    var partitionShown = false
-    var context = null.asInstanceOf[Context]
+  //   var partitionShown = false
+  //   var context = null.asInstanceOf[Context]
 
-    override def setup(context: Context) {
-      this.context = context
-    }
+  //   override def setup(context: Context) {
+  //     this.context = context
+  //   }
 
-    override def map(key: KeyWritable, value: TwoMuonWritable, context: Context) {
-      if (!partitionShown) {
-        println(s"path ${context.getInputSplit.asInstanceOf[FileSplit].getPath}")
-        println(s"name ${context.getInputSplit.asInstanceOf[FileSplit].getPath.getName}")
-        partitionShown = true
-      }
+  //   override def map(key: KeyWritable, value: TwoMuonWritable, context: Context) {
+  //     if (!partitionShown) {
+  //       println(s"path ${context.getInputSplit.asInstanceOf[FileSplit].getPath}")
+  //       println(s"name ${context.getInputSplit.asInstanceOf[FileSplit].getPath.getName}")
+  //       partitionShown = true
+  //     }
 
-      val KeyWritable(ttreeEntry) = key
-      val ValueWritable(TwoMuon(mass, _, _, _)) = value
+  //     val KeyWritable(ttreeEntry) = key
+  //     val ValueWritable(TwoMuon(mass, _, _, _)) = value
 
-      context.write(new IntWritable(mass.toInt), value)
-    }
-  }
+  //     context.write(new IntWritable(mass.toInt), value)
+  //   }
+  // }
 
-  class TestReducer extends Reducer[IntWritable, TwoMuonWritable, Text, Text] {
-    type Context = Reducer[IntWritable, TwoMuonWritable, Text, Text]#Context
+  // class TestReducer extends Reducer[IntWritable, TwoMuonWritable, Text, Text] {
+  //   type Context = Reducer[IntWritable, TwoMuonWritable, Text, Text]#Context
 
-    override def setup(context: Context) { }
+  //   override def setup(context: Context) { }
 
-    override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
-      context.write(new Text(key.toString), new Text(values.size.toString))
-    }
-  }
+  //   override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
+  //     context.write(new Text(key.toString), new Text(values.size.toString))
+  //   }
+  // }
 
-  class RootJob extends Configured with Tool {
-    override def run(args: Array[String]): Int = {
-      configuration.set("mapred.reduce.tasks", "1")
+  // class RootJob extends Configured with Tool {
+  //   override def run(args: Array[String]): Int = {
+  //     configuration.set("mapred.reduce.tasks", "1")
 
-      val inputPaths = args(0)
-      val outputPaths = args(1)
+  //     val inputPaths = args(0)
+  //     val outputPaths = args(1)
 
-      val job = new Job(configuration, "roottest")
-      FileInputFormat.setInputPaths(job, new Path(inputPaths))
-      FileOutputFormat.setOutputPath(job, new Path(outputPaths))
+  //     val job = new Job(configuration, "roottest")
+  //     FileInputFormat.setInputPaths(job, new Path(inputPaths))
+  //     FileOutputFormat.setOutputPath(job, new Path(outputPaths))
 
-      job.setMapperClass(classOf[TestMapper])
-      job.setReducerClass(classOf[TestReducer])
+  //     job.setMapperClass(classOf[TestMapper])
+  //     job.setReducerClass(classOf[TestReducer])
 
-      job.setInputFormatClass(classOf[TwoMuonInputFormat])
-      job.setMapOutputKeyClass(classOf[IntWritable]);
-      job.setMapOutputValueClass(classOf[TwoMuonWritable]);
-      job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
+  //     job.setInputFormatClass(classOf[TwoMuonInputFormat])
+  //     job.setMapOutputKeyClass(classOf[IntWritable]);
+  //     job.setMapOutputValueClass(classOf[TwoMuonWritable]);
+  //     job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
 
-      job.setJarByClass(classOf[RootJob])
-      job.waitForCompletion(true)
-      0
-    }
-  }
+  //     job.setJarByClass(classOf[RootJob])
+  //     job.waitForCompletion(true)
+  //     0
+  //   }
+  // }
 
   object Main {
     def main(args: Array[String]) {
-      val otherArgs: Array[String] = new GenericOptionsParser(configuration, args).getRemainingArgs
-      ToolRunner.run(new RootJob, otherArgs)
+      // val otherArgs: Array[String] = new GenericOptionsParser(configuration, args).getRemainingArgs
+      // ToolRunner.run(new RootJob, otherArgs)
     }
   }
 }
