@@ -121,7 +121,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>org.dianahep.hadooptest.wordcount.WordCount</mainClass>
+              <mainClass>org.dianahep.hadooptest.roottest.Main</mainClass>
               <addClasspath>true</addClasspath>
               <classpathPrefix>./lib</classpathPrefix>
             </manifest>
@@ -174,7 +174,7 @@
           </descriptors>
           <archive>
             <manifest>
-              <mainClass>org.dianahep.hadooptest.wordcount.WordCount</mainClass>
+              <mainClass>org.dianahep.hadooptest.roottest.Main</mainClass>
             </manifest>
           </archive>
         </configuration>
