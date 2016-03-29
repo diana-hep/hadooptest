@@ -23,52 +23,36 @@ import org.apache.hadoop.util.GenericOptionsParser
 import org.apache.hadoop.util.Tool
 import org.apache.hadoop.util.ToolRunner
 
-import org.dianahep.scaroot.hadoop.RootInputFormat
-import org.dianahep.scaroot.hadoop.KeyWritable
-import org.dianahep.scaroot.hadoop.ValueWritable
+import data.root._
+import org.dianahep.scaroot.reader._
+import org.dianahep.scaroot.hadoop._
 
 package object roottest {
   val configuration = new Configuration
 }
 
 package roottest {
-  case class TwoMuon(mass_mumu: Float, px: Float, py: Float, pz: Float) {
-    def momentum = Math.sqrt(px*px + py*py + pz*pz)
-    def energy = Math.sqrt(mass_mumu*mass_mumu + px*px + py*py + pz*pz)
-  }
-  class TwoMuonWritable extends ValueWritable[TwoMuon]
-  class TwoMuonInputFormat extends RootInputFormat[TwoMuon, TwoMuonWritable]("TrackResonanceNtuple/twoMuon")
-
-  class TestMapper extends Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable] {
-    type Context = Mapper[KeyWritable, TwoMuonWritable, IntWritable, TwoMuonWritable]#Context
-
-    var partitionShown = false
-    var context = null.asInstanceOf[Context]
-
-    override def setup(context: Context) {
-      this.context = context
-    }
-
-    override def map(key: KeyWritable, value: TwoMuonWritable, context: Context) {
-      if (!partitionShown) {
-        println(s"path ${context.getInputSplit.asInstanceOf[FileSplit].getPath}")
-        println(s"name ${context.getInputSplit.asInstanceOf[FileSplit].getPath.getName}")
-        partitionShown = true
-      }
-
-      val KeyWritable(ttreeEntry) = key
-      val ValueWritable(TwoMuon(mass, _, _, _)) = value
-
-      context.write(new IntWritable(mass.toInt), value)
-    }
-  }
-
-  class TestReducer extends Reducer[IntWritable, TwoMuonWritable, Text, Text] {
-    type Context = Reducer[IntWritable, TwoMuonWritable, Text, Text]#Context
+  class TestMapper extends Mapper[KeyWritable, TwoMuonWritable, KeyWritable, TwoMuonWritable] {
+    type Context = Mapper[KeyWritable, TwoMuonWritable, KeyWritable, TwoMuonWritable]#Context
 
     override def setup(context: Context) { }
 
-    override def reduce(key: IntWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
+    override def map(key: KeyWritable, value: TwoMuonWritable, context: Context) {
+      val KeyWritable(fileIndex, treeEntry) = key
+      val TwoMuon(mass, _, _, _) = toTwoMuon(value)
+
+      println(s"$fileIndex $treeEntry $mass")
+
+      context.write(KeyWritable(fileIndex, treeEntry % 10), value)
+    }
+  }
+
+  class TestReducer extends Reducer[KeyWritable, TwoMuonWritable, Text, Text] {
+    type Context = Reducer[KeyWritable, TwoMuonWritable, Text, Text]#Context
+
+    override def setup(context: Context) { }
+
+    override def reduce(key: KeyWritable, values: java.lang.Iterable[TwoMuonWritable], context: Context) {
       context.write(new Text(key.toString), new Text(values.size.toString))
     }
   }
@@ -84,11 +68,17 @@ package roottest {
       FileInputFormat.setInputPaths(job, new Path(inputPaths))
       FileOutputFormat.setOutputPath(job, new Path(outputPaths))
 
+      configuration.set("mapred.map.child.env", "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/root/lib")
+      configuration.set("scaroot.reader.treeLocation", treeLocation)
+      configuration.set("scaroot.reader.libs", "")
+      configuration.set("scaroot.reader.classNames", "twoMuon")
+      configuration.setClass("scaroot.reader.myclasses.twoMuon", myclasses("twoMuon").getClass, classOf[My[_]])
+
       job.setMapperClass(classOf[TestMapper])
       job.setReducerClass(classOf[TestReducer])
 
-      job.setInputFormatClass(classOf[TwoMuonInputFormat])
-      job.setMapOutputKeyClass(classOf[IntWritable]);
+      job.setInputFormatClass(classOf[RootTreeInputFormat[TwoMuon]])
+      job.setMapOutputKeyClass(classOf[KeyWritable]);
       job.setMapOutputValueClass(classOf[TwoMuonWritable]);
       job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
 
